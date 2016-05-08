@@ -4,6 +4,7 @@
 \usepackage{setspace}
 \usepackage{booktabs}
 \usepackage{multirow}
+\usepackage{framed}
 
 \title{CS207 Algorithm Analysis: Kernel Density Estimation}
 \author{Gioia Domined\`o \and Nicolas Drizard \and Kendrick Lo \and Malcolm Mason Rodriguez}
@@ -38,7 +39,7 @@ Kernel Density Estimation (KDE) is a non-parametrical statistical technique that
 
 \section{Algorithm}
 
-For ease of comparability, we used a consistent set of parameters for all our experiments: a Gaussian kernel and a bandwidth of $0.2$. Figure \ref{fig:sample_kde} shows the result of running the algorithm with these parameters on 100K one-dimensional random variables drawn from a bimodal distribution, where the PDF is plotted at 1K evenly-spaced points.
+A discussion on the ``best" parameters for KDE is beyond the scope of this paper.  For ease of comparability, all our experiments are based on a Gaussian kernel and a bandwidth of $0.2$. Figure \ref{fig:sample_kde} shows the result of running the Scikit Learn KDE algorithm with these parameters on 100K one-dimensional random variables drawn from a bimodal distribution, where the PDF is plotted at 1K evenly-spaced values of $x$.
 
 \begin{figure}[h!]
 \centering
@@ -49,20 +50,53 @@ For ease of comparability, we used a consistent set of parameters for all our ex
 
 \noindent We started by implementing a ``pure" Python version of KDE; in keeping with that objective, we only used lists. We can see from the code below that the KDE algorithm is a direct application of Equation \ref{eq:kde}. The double loop, which is necessary due to the use of lists, immediately stands out as a significant source of inefficiencies.
 
+\begin{framed}
+\begin{singlespacing}
+\begin{scriptsize}
+\begin{verbatim}
+def gaussian(x):
+    '''
+    Returns the Gaussian function for a given input variable.
+    
+    Parameters
+    ----------
+    x : float
+        the x-value at which to evaluate the Gaussian function
+        
+    Returns
+    ----------
+    gaussian : float
+        the result of evaluating the Gaussian function at x
+    '''
+    return np.exp(-1.0 * (x**2) / 2) * (1.0 / np.sqrt(2.0 * np.pi))
+\end{verbatim}
+\end{scriptsize}
+\end{singlespacing}
+\end{framed}
+
+\newpage
+
+\begin{framed}
 \begin{singlespacing}
 \begin{scriptsize}
 \begin{verbatim}
 def naive_kde(x, x_grid, h):
     '''
     Calcalates the KDE PDF estimate, based on a Gaussian kernel.
-    Inputs
+    
+    Parameters
     ----------
-    x      : A list of iid random variables that are used to calculate the KDE estimate
-    x_grid : A list of values along which to calculate the KDE estimate
-    h      : Float, the bandwidth parameter for the KDE estimate
+    x : list
+        iid random variables that are used to calculate the KDE estimate
+    x_grid : list
+        values along which to calculate the KDE estimate
+    h : float
+        bandwidth parameter for the KDE estimate
+        
     Returns
     ----------
-    A list of KDE estimates for all values of x_grid.
+    estimates: list
+        KDE estimates for all values of x_grid
     '''
     global N # number of iid random variables
     estimates = [0] * len(x_grid)
@@ -78,11 +112,11 @@ def naive_kde(x, x_grid, h):
 \end{verbatim}
 \end{scriptsize}
 \end{singlespacing}
-
-\newpage
+\end{framed}
 
 \noindent Before moving on to the Scikit Learn implementation, we tested the effect of switching from lists to Numpy arrays and vectorizing the inner loop. This simple change, which is shown in the code below, reduced the runtime from nearly 300 seconds to just over 1 second!
 
+\begin{framed}
 \begin{singlespacing}
 \begin{scriptsize}
 \begin{verbatim}
@@ -110,10 +144,23 @@ def vectorized_kde(x, x_grid, h):
 \end{verbatim}
 \end{scriptsize}
 \end{singlespacing}
+\end{framed}
 
-\section{ScikitLearn Optimizations}
+\newpage
+
+\section{Scikit Learn Optimizations}
+
+After completing our Python implementation, we next moved on to examine the Scikit Learn implementation\footnote{The full source code is available at https://github.com/scikit-learn/scikit-learn/tree/master/sklearn/neighbors.} and analyze its optimizations.
+
+%default distance metric = euclidean distance
+
+%FFT-based computation
+%For large datasets, a kernel density estimate can be computed efficiently via the convolution theorem using a fast Fourier transform. This requires binning the data, so the approach quickly becomes inefficient in higher dimensions. Of the four algorithms discussed here, only Statsmodels' KDEUnivariate implements an FFT-based KDE. As we'll see below, the FFT provides some computational gains for large numbers of points, but in most situations is not as effective as tree-based KDE implementations.
 
 
+%requires homogenous datasets (vs Statsmodels' KDEMultivariate - can handle mix of  mix of continuous, ordered discrete, and unordered discrete variables)
+
+%about a dozen distance metrics??
 
 \begin{table}[h!]
 \centering
@@ -131,17 +178,7 @@ Scikit Learn			& 5.73				\\
 \end{table}
 
 
-%\section{Numpy Implementation}
-%
-%\section{ScikitLearn Implementation}
-
-%5-6 pages max, please
-%one per group!
-%choose an algorithm, from someplace like sklearn, which has an optimization. By optimization I mean code written in C and integrated, or code written in cython or SWIG or similar (optionally you could choose a more algorithmic kind of optimization, but this is not explicitly encouraged since this is a computer science and not numerical programming class)
-%explain why, in your opinion, the writers felt the need of an optimization
-%to do this, explain the basic algorithm by writing an implementation in pure python. You can use the project's test examples to make sure your implementation is correct.
-%explain the logic of the optimization
-
-%Hey? I?ve looked over the scikit learn functions, and for the paper I would propose doing  Kernel Density Estimation. In sklearn, they use trees and Cython to speed things up, and the .pyx file is there? so it should not be too onerous to make up, I mean, write something based on that. Also, the author of the code wrote a blog article and we can draw further observations from those:  e.g. http://jakevdp.github.io/blog/2013/12/01/kernel-density-estimation/
+%\section{Additional Considerations}
+%KDE estimation in higher-dimensional space?
 
 \end{document}
