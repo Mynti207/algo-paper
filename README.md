@@ -13,5 +13,3 @@ Nicolas Drizard  |  [@nicodri](https://github.com/nicodri)  |  nicolasdrizard@g.
 
 Kendrick Lo  |  [@ppgmg](https://github.com/ppgmg)  |  klo@g.harvard.edu
 
-Malcolm Mason Rodriguez  |  [@malcolmjmr](https://github.com/malcolmjmr)  |  mmasonrodriguez@college.harvard.edu
-
